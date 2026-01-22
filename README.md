@@ -1,5 +1,12 @@
 # Kubernetes Monitoring Stack - Complete Setup Guide
 
+
+
+
+# 👉 **[▶️ CLICK HERE TO WATCH THE DEMO VIDEO](./demo-videos.mp4)** 👈
+
+
+
 ## 📋 Overview
 
 This repository contains a complete Infrastructure as Code (IaC) setup for deploying a production-ready monitoring stack on Amazon EKS. The implementation includes application deployment with ALB Ingress Controller, comprehensive monitoring using Prometheus and Grafana, and centralized logging with Loki and Promtail.
