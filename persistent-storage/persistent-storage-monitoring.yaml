@@ -1,0 +1,82 @@
+
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-sc
+provisioner: efs.csi.aws.com
+
+
+--- 
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: prometheus-server-pvc
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: efs-sc
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-06a8190478e7b8056 ## add efs filesystem id ##
+    volumeAttributes:
+      path: "/opt/prometheus"
+
+
+---
+
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-pvc
+  namespace: monitoring  # Change to your namespace where kube-prometheus-stack is installed
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  resources:
+    requests:
+      storage: 10Gi 
+
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: grafana-server-pvc
+spec:
+  capacity:
+    storage: 12Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: efs-sc
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-06a8190478e7b8056 ## add efs filesystem id ##
+    volumeAttributes:
+      path: "/opt/grafana"
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-pvc
+  namespace: monitoring  # Change to your namespace where kube-prometheus-stack is installed
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  resources:
+    requests:
+      storage: 12Gi 
+

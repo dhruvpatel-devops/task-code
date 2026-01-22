@@ -1,0 +1,91 @@
+
+
+# Fixed Prometheus Helm Values
+grafana:
+  enabled: true
+  image:
+    tag: "latest"
+  persistence:
+    type: pvc
+    enabled: true
+    storageClassName: efs-sc
+    accessModes:
+      - ReadWriteMany
+    size: 12Gi
+    # Remove existingClaim if you want Helm to create it
+    # Or keep it if the PVC already exists
+    existingClaim: grafana-pvc
+  adminPassword: "admin123"
+  
+  # Make Grafana accessible via LoadBalancer
+  service:
+    type: LoadBalancer
+    port: 80
+
+prometheus:
+  prometheusSpec:
+    # Storage configuration
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          storageClassName: "efs-sc"
+          resources:
+            requests:
+              storage: 10Gi
+    
+    # Data retention
+    retention: 15d
+    retentionSize: "9GB"
+    
+    # Allow scraping from all namespaces
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    
+    # Additional scrape configuration for frontend-app
+    additionalScrapeConfigs:
+      - job_name: 'frontend-application'
+        metrics_path: '/metrics'  # Explicit metrics path
+        scrape_interval: 30s
+        scrape_timeout: 10s
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - demo  # Target the demo namespace
+        relabel_configs:
+          # Keep only pods with label name=frontend-app
+          - source_labels: [__meta_kubernetes_pod_label_name]
+            action: keep
+            regex: frontend-app
+          
+          # Set the address to pod_ip:8080
+          - source_labels: [__meta_kubernetes_pod_ip]
+            action: replace
+            target_label: __address__
+            replacement: $1:8080
+          
+          # Add pod name as label
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+          
+          # Add namespace as label
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: namespace
+          
+          # Add node name as label
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            action: replace
+            target_label: node
+
+# Enable other exporters
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
+
+alertmanager:
+  enabled: true

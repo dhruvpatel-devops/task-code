@@ -1,0 +1,146 @@
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: "demo"
+
+# ---
+
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: "frontend-app"
+#   namespace: "demo"
+# spec:
+#   selector:
+#     matchLabels:
+#       name: "frontend-app"
+#   replicas: 1
+#   template:
+#     metadata:
+#       labels:
+#         name: "frontend-app"
+#     spec:
+#       containers:
+#       - image: dhruvdevopscloud/frontend-app:v1
+#         imagePullPolicy: Always
+#         name: "frontend-app"
+#         ports:
+#         - containerPort: 8080
+#         resources:
+#           requests:
+#             cpu: "100m"
+#             memory: "128Mi"
+#           limits:
+#             cpu: "500m"
+#             memory: "256Mi"
+
+# ---
+
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: "frontend-app"
+#   namespace: "demo"
+#   labels:
+#     name: "frontend-app"
+# spec:
+#   ports:
+#     - name: http          # 👈 REQUIRED
+#       port: 8080
+#       targetPort: 8080
+#       protocol: TCP
+#   type: NodePort
+#   selector:
+#     name: "frontend-app"
+
+
+
+# ---
+
+# apiVersion: monitoring.coreos.com/v1
+# kind: ServiceMonitor
+# metadata:
+#   name: "frontend-app"
+#   namespace: monitoring   # IMPORTANT: same namespace as Prometheus
+# spec:
+#   selector:
+#     matchLabels:
+#       name: "frontend-app"
+#   namespaceSelector:
+#     matchNames:
+#       - demo
+#   endpoints:
+#     - port: http
+#       path: /metrics
+#       interval: 15s
+
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "demo"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "frontend-app"
+  namespace: "demo"
+  labels:
+    app: frontend-app
+spec:
+  selector:
+    matchLabels:
+      name: "frontend-app"
+      app: frontend-app  # Added for consistency
+  replicas: 1 # Increased to 3 for better monitoring data
+  template:
+    metadata:
+      labels:
+        name: "frontend-app"
+        app: frontend-app  # Added for consistency
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - image: dhruvdevopscloud/frontend-app:v1
+        imagePullPolicy: Always
+        name: "frontend-app"
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: metrics  # Explicit metrics port
+          containerPort: 8080
+          protocol: TCP
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+        # Health checks (optional but recommended
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: "frontend-app"
+  namespace: "demo"
+  labels:
+    name: "frontend-app"
+    app: frontend-app
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  type: NodePort
+  selector:
+    name: "frontend-app"
