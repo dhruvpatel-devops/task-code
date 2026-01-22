@@ -43,7 +43,13 @@ This repository contains a complete Infrastructure as Code (IaC) setup for deplo
 > **Note**: Currently using default ALB DNS names. SSL/TLS and custom domain integration require domain ownership and SSL certificate setup via AWS Certificate Manager (ACM).
 
 ---
+![Frontend Application](./frontend-application.png)
 
+you can observe metric of application at /metrics of app url : k8s-demo-frontend-439132bd8f-1137635361.ap-southeast-1.elb.amazonaws.com/metrics
+
+![Application Metrics](./frontend-metrics.png)
+
+![Grafana Dashboard](./grafana-dashboard.png)
 ## 📦 Prerequisites
 
 Before starting, ensure you have the following installed and configured:
